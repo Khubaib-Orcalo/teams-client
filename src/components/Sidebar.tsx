@@ -1,9 +1,9 @@
 
 
-const Sidebar = () => {
+const Sidebar = ({ user }: any) => {
   return (
     <aside className="h-screen w-72 bg-slate-100 py-5">
-      <h1 className="text-center">Teams</h1>
+      <h1 className="text-center">Teams ({user.username})</h1>
       <div className="flex justify-center mt-5">
         <button className="mr-4 bg-rose-700 text-white p-2 rounded-md">Personal</button>
         <button className="bg-rose-700 text-white p-2 rounded-md">Group</button>
