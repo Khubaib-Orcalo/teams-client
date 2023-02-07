@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import * as io from 'socket.io-client'
-// const socket = io.connect('http://localhost:3001')
+import socket from './socket'
 import './App.css'
 import Chat from './components/Chat'
 import Login from './components/Login'
@@ -11,6 +10,24 @@ function App() {
   const [login, setLogin] = useState(true)
   const [creds, setCreds] = useState<any>({ username: '', password: '' })
   const [loggedInUser, setLoggedInUser] = useState<any>({})
+  const [onlineUsers, setOnlineUsers] = useState<any>([])
+
+  useEffect(() => {
+    socket.emit('getOnlineUsers', () => {
+      console.log('get online and offline users')
+    })
+  
+    socket.on('onlineUsers', (payload) => {
+      console.log(payload)
+      setOnlineUsers(payload.onlineUsers)
+    })
+  
+    socket.on('connected', (payload) => {
+      console.log(payload)
+    })
+
+  },[])
+
 
   function loginUser() {
     return new Promise((resolve, reject) => {
@@ -23,14 +40,12 @@ function App() {
         resolve('yes')
       }
       setTimeout(() => {
+        socket.auth = { id: user?._id, username: user?.username };
+        socket.connect();
         setLogin(false)
       }, 1000);
     });
   }
-  // socket.on('pong', (data) => {
-  //   console.log('pong recieved from server')
-  // })
-
 
   return (
     <div className="h-screen">
@@ -39,7 +54,7 @@ function App() {
       ) : (
         <>
           <div className='flex flex-row'>
-            <Sidebar user={loggedInUser} />
+            <Sidebar user={loggedInUser} onlineUsers={onlineUsers} />
             <Chat />
           </div>
         </>

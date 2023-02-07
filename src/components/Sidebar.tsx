@@ -1,6 +1,8 @@
 
 
-const Sidebar = ({ user }: any) => {
+const Sidebar = ({ user, onlineUsers }: any) => {
+
+  console.log(onlineUsers)
   return (
     <aside className="h-screen w-72 bg-slate-100 py-5">
       <h1 className="text-center">Teams ({user.username})</h1>
@@ -11,12 +13,15 @@ const Sidebar = ({ user }: any) => {
 
       <div className="items mt-5">
 
-        <div className="border-2 border-indigo-500/50 mx-5 p-3">
-          <p>User1</p>
-        </div>
-        <div className="border-2 border-indigo-500/50 mx-5 p-3 mt-5">
-          <p>User2</p>
-        </div>
+        {onlineUsers.map((item: any) => {
+          (
+            <>
+              <div className="border-2 border-indigo-500/50 mx-5 p-3">
+                <p>{item}</p>
+              </div>
+            </>
+          )
+        })}
 
       </div>
     </aside>
