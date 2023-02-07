@@ -17,12 +17,12 @@ function App() {
       console.log('get online and offline users')
     })
   
-    socket.on('onlineUsers', (payload) => {
+    socket.on('onlineUsers', (payload: any) => {
       console.log(payload)
       setOnlineUsers(payload.onlineUsers)
     })
   
-    socket.on('connected', (payload) => {
+    socket.on('connected', (payload: any) => {
       console.log(payload)
     })
 
