@@ -5,45 +5,36 @@ import Chat from './components/Chat'
 import Login from './components/Login'
 import Sidebar from './components/Sidebar'
 import { users } from './data/users'
+import axios from 'axios'
+
+const baseUrl = 'http://localhost:8001'
 
 function App() {
   const [login, setLogin] = useState(true)
   const [creds, setCreds] = useState<any>({ username: '', password: '' })
   const [loggedInUser, setLoggedInUser] = useState<any>({})
-  const [onlineUsers, setOnlineUsers] = useState<any>([])
+  const [chats, setChats] = useState<any>([])
 
-  useEffect(() => {
-    socket.emit('getOnlineUsers', () => {
-      console.log('get online and offline users')
-    })
-  
-    socket.on('onlineUsers', (payload: any) => {
-      console.log(payload)
-      setOnlineUsers(payload.onlineUsers)
-    })
-  
-    socket.on('connected', (payload: any) => {
-      console.log(payload)
-    })
-
-  },[])
-
+  async function getChats(id: any) {
+    const response = await axios.get(`${baseUrl}/personal/${id}`)
+    return response.data.data
+  }
 
   function loginUser() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const user = users.find(item => item.username == creds.username.toLowerCase())
       if (user?.password == creds.password) {
-        setLoggedInUser({ _id: user?._id, username: user?.username })
+        setLoggedInUser({ id: user?.id, username: user?.username })
         resolve("foo");
       } else {
         console.log('Invalid Credentials')
         resolve('yes')
       }
-      setTimeout(() => {
-        socket.auth = { id: user?._id, username: user?.username };
-        socket.connect();
-        setLogin(false)
-      }, 1000);
+      const chatData = await getChats(user?.id)
+      socket.auth = { id: user?.id, username: user?.username };
+      setChats(chatData)
+      socket.connect();
+      setLogin(false)
     });
   }
 
@@ -54,12 +45,11 @@ function App() {
       ) : (
         <>
           <div className='flex flex-row'>
-            <Sidebar user={loggedInUser} onlineUsers={onlineUsers} />
+            <Sidebar user={loggedInUser} chats={chats} />
             <Chat />
           </div>
         </>
       )}
-      {/* <button onClick={() => socket.emit('ping', { msg: 'Hi Nest', to: 'room'})}>Ping</button> */}
     </div>
   )
 }

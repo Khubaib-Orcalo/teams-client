@@ -1,32 +1,26 @@
 export const users = [
   {
-    _id: "63e1439ba8fb0343e10e749e",
-    avatar: "https://i.pravatar.cc/300",
-    username: 'ether',
-    password: '123'
+    id: '63ea6d5cfa695ca4b7470450',
+    username: 'willie',
+    password: '123',
+    firstName: 'Willie',
+    lastName: 'Simmons',
+    avatar: 'https://avataaars.io/?avatarStyle=Circle&topType=LongHairStraight&accessoriesType=Blank&hairColor=BrownDark&facialHairType=Blank&clotheType=BlazerShirt&eyeType=Default&eyebrowType=Default&mouthType=Default&skinColor=Light'
   },
   {
-    _id: "63e1439ba8fb0343e10e749f",
-    avatar: "https://i.pravatar.cc/300",
-    username: 'loop',
-    password: '123'
+    id: '63ea6d5cfa695ca4b7470451',
+    username: 'anne',
+    password: '123',
+    firstName: 'Annette',
+    lastName: 'Hill',
+    avatar: 'https://avataaars.io/?avatarStyle=Circle&topType=ShortHairTheCaesarSidePart&accessoriesType=Prescription02&hairColor=SilverGray&facialHairType=BeardMajestic&facialHairColor=BrownDark&clotheType=BlazerShirt&eyeType=Squint&eyebrowType=RaisedExcited&mouthType=Sad&skinColor=Pale'
   },
   {
-    _id: "63e1439ba8fb0343e10e74a0",
-    avatar: "https://i.pravatar.cc/300",
-    username: 'ghost',
-    password: '123'
-  },
-  {
-    _id: "63e1439ba8fb0343e10e74a1",
-    avatar: "https://i.pravatar.cc/300",
-    username: 'jayjay',
-    password: '123'
-  },
-  {
-    _id: "63e1439ba8fb0343e10e74a2",
-    avatar: "https://i.pravatar.cc/300",
-    username: 'alice',
-    password: '123'
-  },
+    id: '63ea6d5cfa695ca4b7470452',
+    username: 'clark',
+    password: '123',
+    firstName: 'Clark',
+    lastName: 'Owens',
+    avatar: 'https://avataaars.io/?avatarStyle=Circle&topType=LongHairBob&accessoriesType=Kurt&hairColor=Auburn&facialHairType=BeardMajestic&facialHairColor=Red&clotheType=Hoodie&clotheColor=Gray01&eyeType=Side&eyebrowType=AngryNatural&mouthType=Twinkle&skinColor=Light'
+  }
 ]
