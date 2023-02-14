@@ -2,15 +2,11 @@ import { useEffect, useState } from "react"
 import socket from '../socket'
 
 
-const Sidebar = ({ user, chats }: any) => {
+const Sidebar = ({ user, chats, handleChat }: any) => {
 
-  const [onlineUsers, setOnlineUsers] = useState<any>([])
-  socket.on('userJoin', (data) => {
-    console.log('userJoin', data);
-    onlineUsers.push(data.id)
-  })
+  let addedStatus = chats.map((item: any) => { return {...item, isOnline: false } })
 
-  
+  const [chatList, setChatList] = useState<any>(addedStatus)
 
   useEffect(() => {
     return () => {
@@ -27,22 +23,13 @@ const Sidebar = ({ user, chats }: any) => {
       </div>
 
       <div className="items mt-5">
-
-        {chats.length == 0 ? (
+        {chatList.length == 0 ? (
           <h4>Loading</h4>
-        ) : chats.map((item: any) => {
+        ) : chatList.map((item: any) => {
           const chat = item.chat.connectedUsers.find((item: any) => item.id != user.id)
-          let isOnline = false
-          socket.on('userJoin', (data) => {
-            if(data.id == chat.id) {
-              console.log(chat.firstName, 'is online')
-              isOnline = true
-            }
-          })
-          socket.emit('onPersonalJoin', { personalId: item.chat.id })
           return (
-            <div key={item.id} className="border-2 border-indigo-500/50 mx-5 p-3">
-              <p>{chat.firstName} {chat.lastName} {isOnline ? 'Online' : 'Offline'}</p>
+            <div key={item.id} className="border-2 border-indigo-500/50 mx-5 p-3" onClick={() => handleChat(item.chat.id)}>
+              <p>{chat.firstName} {chat.lastName} {item.isOnline ? 'Online' : 'Offline'}</p>
             </div>
           )
         })}

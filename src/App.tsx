@@ -14,6 +14,7 @@ function App() {
   const [creds, setCreds] = useState<any>({ username: '', password: '' })
   const [loggedInUser, setLoggedInUser] = useState<any>({})
   const [chats, setChats] = useState<any>([])
+  const [selectedChat, setSelectedChat] = useState('')
 
   async function getChats(id: any) {
     const response = await axios.get(`${baseUrl}/personal/${id}`)
@@ -38,6 +39,20 @@ function App() {
     });
   }
 
+  const sendMessage = async (payload: any) => {
+    const response = await axios.post(`${baseUrl}/messages`, payload)
+    if(response.status === 201) console.log('Message Sent')
+  }
+
+  const [chatData, setChatData] = useState<any>([])
+
+  const openChat = async (id: string) => {
+    const response = await axios.get(`${baseUrl}/messages/chat/${id}`)
+    console.log(response)
+    setSelectedChat(id)
+    setChatData(response.data)
+  }
+
   return (
     <div className="h-screen">
       {login ? (
@@ -45,8 +60,10 @@ function App() {
       ) : (
         <>
           <div className='flex flex-row'>
-            <Sidebar user={loggedInUser} chats={chats} />
-            <Chat />
+            <Sidebar user={loggedInUser} chats={chats} handleChat={openChat} />
+            {selectedChat ? (
+              <Chat data={chatData} id={selectedChat} user={loggedInUser} handleMessageSend={sendMessage} />
+            ) : null }
           </div>
         </>
       )}
