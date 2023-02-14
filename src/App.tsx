@@ -62,7 +62,7 @@ function App() {
           <div className='flex flex-row'>
             <Sidebar user={loggedInUser} chats={chats} handleChat={openChat} />
             {selectedChat ? (
-              <Chat data={chatData} id={selectedChat} user={loggedInUser} handleMessageSend={sendMessage} />
+              <Chat chatData={chatData} id={selectedChat} user={loggedInUser} handleMessageSend={sendMessage} />
             ) : null }
           </div>
         </>
