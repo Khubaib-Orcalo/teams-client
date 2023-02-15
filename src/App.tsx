@@ -48,7 +48,7 @@ function App() {
 
   const openChat = async (id: string) => {
     const response = await axios.get(`${baseUrl}/messages/chat/${id}`)
-    console.log(response)
+    // console.log(response)
     setSelectedChat(id)
     setChatData(response.data)
   }
@@ -62,7 +62,12 @@ function App() {
           <div className='flex flex-row'>
             <Sidebar user={loggedInUser} chats={chats} handleChat={openChat} />
             {selectedChat ? (
-              <Chat chatData={chatData} id={selectedChat} user={loggedInUser} handleMessageSend={sendMessage} />
+              <Chat
+                chatData={chatData}
+                id={selectedChat}
+                user={loggedInUser}
+                handleMessageSend={sendMessage}
+              />
             ) : null }
           </div>
         </>

@@ -2,7 +2,10 @@ import { useEffect, useState } from "react"
 import socket from '../socket'
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
-// import EmojiPicker from 'emoji-picker-react';
+import axios from 'axios'
+
+const baseUrl = 'http://localhost:8001'
+
 
 const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
 
@@ -16,15 +19,21 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
 
   useEffect(() => {
     setMessages(chatData)
-  }, [])
-
-  useEffect(() => {
     socket.emit('onPersonalJoin', { personalId: id })
-
+  }, [])
+  
+  useEffect(() => {
     socket.on('onMessage', (payload) => {
       console.log('New Message')
       let chats = [...messages]
       chats.push(payload)
+      setMessages(chats)
+    })
+
+    socket.on('onMessageDelete', (payload) => {
+      console.log('Delete Message', payload)
+      let chats = [...messages]
+      chats.splice(messages.indexOf(messages.find((item: any) => item.id === payload.id)), 1)
       setMessages(chats)
     })
 
@@ -40,6 +49,7 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
     });
 
     return () => {
+      socket.off('onMessageDelete')
       socket.off('onMessage')
       socket.off('onTypingStart');
       socket.off('onTypingStop');
@@ -100,6 +110,16 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
 
   const [replyingTo, setReplyingTo] = useState<any>(null)
 
+  const handleMessageDelete = async (id: any) => {
+    const response = await axios.delete(`${baseUrl}/messages/${id}/${user.id}`)
+    if(response.status === 200) {
+      let chats = [...messages]
+      chats.splice(messages.indexOf(messages.find((item: any) => item.id === id)), 1)
+      setMessages(chats)
+      console.log('Message Deleted')
+    } 
+  }
+
   return (
     <div className="w-full">
       <div className="header">
@@ -134,9 +154,9 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
                   <img src="https://cdn-icons-png.flaticon.com/128/2311/2311524.png" width={15} alt="" onClick={() => handleMsgAction(item.id)} />
                   {showMessageActions == item.id ? (
                     <div className="flex flex-col bg-white shadow-xl rounded-lg p-5">
-                      <span onClick={() => setReplyingTo(item)}>Reply</span>
-                      <span>Delete</span>
-                      <span>Copy</span>
+                      <span className="cursor-pointer" onClick={() => setReplyingTo(item)}>Reply</span>
+                      <span className="cursor-pointer" onClick={() => handleMessageDelete(item.id)}>Delete</span>
+                      <span className="cursor-pointer">Copy</span>
                     </div>
                   ) : null}
 
@@ -159,7 +179,6 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
 
           <div className={showEmoji ? 'absolute right-72 top-72 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 z-10' : 'hidden'}>
             <Picker data={data} onEmojiSelect={addEmoji} />
-            {/* <EmojiPicker onEmojiClick={addEmoji} /> */}
           </div>
           <button className="mt-5 mr-3 bg-gray-700 text-white p-2 px-5 rounded-md" onClick={() => setShowEmoji(val => !val)}>Emoji</button>
           <button className="mt-5 mr-3 bg-gray-700 text-white p-2 px-5 rounded-md">Upload File</button>
