@@ -11,37 +11,39 @@ const baseUrl = 'http://localhost:8001'
 
 function App() {
   const [login, setLogin] = useState(true)
-  const [creds, setCreds] = useState<any>({ username: '', password: '' })
+  const [creds, setCreds] = useState<any>({ username: 'alice', password: '123' })
   const [loggedInUser, setLoggedInUser] = useState<any>({})
   const [chats, setChats] = useState<any>([])
   const [selectedChat, setSelectedChat] = useState('')
+  const [availableUsers, setAvailableUsers] = useState([])
 
-  async function getChats(id: any) {
-    const response = await axios.get(`${baseUrl}/personal/${id}`)
-    return response.data.data
+  async function getChats() {
+    console.log(loggedInUser)
+    const response = await axios.get(`${baseUrl}/conversations`, { headers: { authorization: `Bearer ${loggedInUser.id}` }})
+    return response.data
   }
 
-  function loginUser() {
-    return new Promise(async (resolve, reject) => {
-      const user = users.find(item => item.username == creds.username.toLowerCase())
-      if (user?.password == creds.password) {
-        setLoggedInUser({ id: user?.id, username: user?.username })
-        resolve("foo");
-      } else {
-        console.log('Invalid Credentials')
-        resolve('yes')
-      }
-      const chatData = await getChats(user?.id)
-      socket.auth = { id: user?.id, username: user?.username };
-      setChats(chatData)
-      socket.connect();
-      setLogin(false)
-    });
+  async function loginUser() {
+    const res = await axios.post(`${baseUrl}/auth/login`, creds)
+    const { data: user } = res
+
+    
+    const response = await axios.get(`${baseUrl}/conversations`, { headers: { authorization: `Bearer ${user.id}` }})
+    const resUsers = await axios.get(`${baseUrl}/users`, { headers: { authorization: `Bearer ${user.id}` }})
+    
+    setLoggedInUser(user)
+    setAvailableUsers(resUsers.data)
+    setChats(response.data)
+
+    socket.auth = { id: user?.id, username: user?.username };
+    socket.connect();
+
+    setLogin(false)
   }
 
   const sendMessage = async (payload: any) => {
     const response = await axios.post(`${baseUrl}/messages`, payload)
-    if(response.status === 201) console.log('Message Sent')
+    if (response.status === 201) console.log('Message Sent')
   }
 
   const [chatData, setChatData] = useState<any>([])
@@ -60,7 +62,7 @@ function App() {
       ) : (
         <>
           <div className='flex flex-row'>
-            <Sidebar user={loggedInUser} chats={chats} handleChat={openChat} />
+            <Sidebar user={loggedInUser} availableUsers={availableUsers} chats={chats} handleChat={openChat} />
             {selectedChat ? (
               <Chat
                 chatData={chatData}
@@ -68,7 +70,7 @@ function App() {
                 user={loggedInUser}
                 handleMessageSend={sendMessage}
               />
-            ) : null }
+            ) : null}
           </div>
         </>
       )}

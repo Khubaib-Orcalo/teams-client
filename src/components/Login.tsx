@@ -9,11 +9,11 @@ const Login = ({ creds, setCreds, submit }: any) => {
           <form className="mb-4" onSubmit={(e) => e.preventDefault()}>
             <div className="mb-4 md:w-full">
               <label className="block text-xs mb-1">Username</label>
-              <input className="w-full border rounded p-2 outline-none focus:shadow-outline" onChange={(e) => setCreds({ ...creds, username: e.target.value })} placeholder="Username" />
+              <input className="w-full border rounded p-2 outline-none focus:shadow-outline" value={creds.username} onChange={(e) => setCreds({ ...creds, username: e.target.value })} placeholder="Username" />
             </div>
             <div className="mb-6 md:w-full">
               <label className="block text-xs mb-1">Password</label>
-              <input className="w-full border rounded p-2 outline-none focus:shadow-outline" type="password" name="password" id="password" placeholder="Password" onChange={(e) => setCreds({ ...creds, password: e.target.value })
+              <input className="w-full border rounded p-2 outline-none focus:shadow-outline" value={creds.password} type="password" name="password" id="password" placeholder="Password" onChange={(e) => setCreds({ ...creds, password: e.target.value })
               } />
             </div>
             <button className="bg-green-500 hover:bg-green-700 text-white uppercase text-sm font-semibold px-4 py-2 rounded" onClick={() => submit()} >Login</button>

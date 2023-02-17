@@ -3,21 +3,44 @@ import { useEffect, useState } from "react"
 import socket from '../socket'
 
 
-const Sidebar = ({ user, chats, handleChat }: any) => {
+const Sidebar = ({ user, chats, handleChat, availableUsers }: any) => {
 
   let addedStatus = chats.map((item: any) => { return { ...item, isOnline: false } })
 
   const [chatList, setChatList] = useState<any>(addedStatus)
 
+  socket.on('onlineUsers', (data) => {
+    console.log(data)
+  })
+
   useEffect(() => {
+    let list: any = []
+    chatList.map((item: any) => list.push(item.chat.connectedUsers.find((val: any) => val.id != user.id)))
+    console.log('LISTTT', list)
+    socket.emit('onlineUsers', { list })
+    
+
     return () => {
       socket.off('userJoin');
     }
-  }, [user.id])
+  }, [])
+
+  function checkIfChatIsAvailable(id: string) {
+    chatList.map((item: any) => {
+      if(item.chat.connectedUsers.find((val: any) => val.id == id)) handleChat(item.chat.id)
+      else console.log('Not initiated')
+    })
+  }
 
   return (
     <aside className="h-screen w-96 bg-slate-100 py-5">
       <h1 className="text-center">Teams ({user.username})</h1>
+      <h4>Available users</h4>
+      <div className="flex flex-col">
+      {availableUsers.map((item: any) => (
+        <span className="m-5" key={item.id} onClick={() => checkIfChatIsAvailable(item.id)}>{item.username}</span>
+        ))}
+        </div>
       <div className="flex justify-center mt-5">
         <button className="mr-4 bg-rose-700 text-white p-2 rounded-md">Personal</button>
         <button className="bg-rose-700 text-white p-2 rounded-md">Group</button>
