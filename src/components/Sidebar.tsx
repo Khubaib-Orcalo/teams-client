@@ -8,26 +8,37 @@ const Sidebar = ({ user, chats, handleChat, availableUsers }: any) => {
   let addedStatus = chats.map((item: any) => { return { ...item, isOnline: false } })
 
   const [chatList, setChatList] = useState<any>(addedStatus)
-
-  socket.on('onlineUsers', (data) => {
-    console.log(data)
-  })
+  const [onlineList, setOnlineList] = useState<any>([])
 
   useEffect(() => {
-    let list: any = []
-    chatList.map((item: any) => list.push(item.chat.connectedUsers.find((val: any) => val.id != user.id)))
-    console.log('LISTTT', list)
-    socket.emit('onlineUsers', { list })
-    
+    console.log('online update', onlineList)
+  }, [onlineList])
+
+  useEffect(() => {
+    socket.on('onlineUsers', (data) => {
+      setOnlineList(data.list)
+    })
+
+    socket.on('singleOnline', (data) => {
+      setOnlineList((old: any) => [...old, data.user])
+    })
+
+    socket.on('singleOffline', (data) => {
+      let tmpArray = onlineList
+      tmpArray.splice(tmpArray.findIndex((item: any) => item == data.user), 1)
+      setOnlineList(tmpArray)
+    })
 
     return () => {
-      socket.off('userJoin');
+      socket.off('onlineUsers');
+      socket.off('singleOnline');
+      socket.off('singleOffline');
     }
   }, [])
 
   function checkIfChatIsAvailable(id: string) {
     chatList.map((item: any) => {
-      if(item.chat.connectedUsers.find((val: any) => val.id == id)) handleChat(item.chat.id)
+      if (item.chat.connectedUsers.find((val: any) => val.id == id)) handleChat(item.chat.id)
       else console.log('Not initiated')
     })
   }
@@ -37,10 +48,10 @@ const Sidebar = ({ user, chats, handleChat, availableUsers }: any) => {
       <h1 className="text-center">Teams ({user.username})</h1>
       <h4>Available users</h4>
       <div className="flex flex-col">
-      {availableUsers.map((item: any) => (
-        <span className="m-5" key={item.id} onClick={() => checkIfChatIsAvailable(item.id)}>{item.username}</span>
+        {availableUsers.map((item: any) => (
+          <span className="m-5" key={item.id} onClick={() => checkIfChatIsAvailable(item.id)}>{item.username} {onlineList.includes(item?.id) ? 'Online' : 'Offline' }</span>
         ))}
-        </div>
+      </div>
       <div className="flex justify-center mt-5">
         <button className="mr-4 bg-rose-700 text-white p-2 rounded-md">Personal</button>
         <button className="bg-rose-700 text-white p-2 rounded-md">Group</button>
@@ -58,6 +69,9 @@ const Sidebar = ({ user, chats, handleChat, availableUsers }: any) => {
                 <p>{chat.firstName} {chat.lastName} <span className="text-xs ml-4">{dayjs(item.updatedAt).format('hh:mm A')}</span></p>
                 <p>{item.chat.lastMessageSent.content}</p>
               </div>
+              <span>
+                {onlineList.includes(chat.id) ? 'Online' : 'Offline'}
+              </span>
               {/* <p>{chat.firstName} {chat.lastName} {item.isOnline ? 'Online' : 'Offline'}</p> */}
             </div>
           )

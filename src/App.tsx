@@ -38,6 +38,11 @@ function App() {
     socket.auth = { id: user?.id, username: user?.username };
     socket.connect();
 
+    let list: any = []
+    response.data.map((item: any) => list.push(item.chat.connectedUsers.find((val: any) => val.id != user.id)?.id))
+    console.log('LISTTT', list)
+    socket.emit('onlineUsers', { list })
+
     setLogin(false)
   }
 
