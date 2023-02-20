@@ -5,9 +5,7 @@ import socket from '../socket'
 
 const Sidebar = ({ user, chats, handleChat, availableUsers }: any) => {
 
-  let addedStatus = chats.map((item: any) => { return { ...item, isOnline: false } })
-
-  const [chatList, setChatList] = useState<any>(addedStatus)
+  const [chatList, setChatList] = useState<any>(chats)
   const [onlineList, setOnlineList] = useState<any>([])
 
   useEffect(() => {
@@ -63,11 +61,11 @@ const Sidebar = ({ user, chats, handleChat, availableUsers }: any) => {
         ) : chatList.map((item: any) => {
           const chat = item.chat.connectedUsers.find((item: any) => item.id != user.id)
           return (
-            <div key={item.id} className="border-2 border-indigo-500/50 mx-5 p-3 flex flex-row align-middle" onClick={() => handleChat(item.chat.id)}>
+            <div key={item.id} className="border-2 border-indigo-500/50 mx-5 my-3 p-3 flex flex-row align-middle" onClick={() => handleChat(item.chat.id)}>
               <img className="avatar" src={chat.avatar}></img>
               <div className="flex flex-col justify-center">
                 <p>{chat.firstName} {chat.lastName} <span className="text-xs ml-4">{dayjs(item.updatedAt).format('hh:mm A')}</span></p>
-                <p>{item.chat.lastMessageSent.content}</p>
+                <p>{item.chat.lastMessageSent ? item.chat.lastMessageSent.content : null}</p>
               </div>
               <span>
                 {onlineList.includes(chat.id) ? 'Online' : 'Offline'}

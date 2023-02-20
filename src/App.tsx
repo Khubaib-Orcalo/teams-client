@@ -11,37 +11,33 @@ const baseUrl = 'http://localhost:8001'
 
 function App() {
   const [login, setLogin] = useState(true)
-  const [creds, setCreds] = useState<any>({ username: 'alice', password: '123' })
+  const [creds, setCreds] = useState<any>({ email: 'alice', password: '123' })
   const [loggedInUser, setLoggedInUser] = useState<any>({})
   const [chats, setChats] = useState<any>([])
   const [selectedChat, setSelectedChat] = useState('')
   const [availableUsers, setAvailableUsers] = useState([])
 
-  async function getChats() {
-    console.log(loggedInUser)
-    const response = await axios.get(`${baseUrl}/conversations`, { headers: { authorization: `Bearer ${loggedInUser.id}` }})
-    return response.data
+  async function getChats(type: string, token: any) {
+    const response = await axios.get(`${baseUrl}/conversations?type=${type}`, { headers: { authorization: `Bearer ${token ? token : loggedInUser.id}` }})
+    const { data: { data } } = response
+    return data
   }
 
   async function loginUser() {
     const res = await axios.post(`${baseUrl}/auth/login`, creds)
-    const { data: user } = res
-
-    
-    const response = await axios.get(`${baseUrl}/conversations`, { headers: { authorization: `Bearer ${user.id}` }})
-    const resUsers = await axios.get(`${baseUrl}/users`, { headers: { authorization: `Bearer ${user.id}` }})
-    
+    const {
+      data: { user, accessToken, refreshToken },
+    } = res.data;
     setLoggedInUser(user)
+    
+    const resUsers = await axios.get(`${baseUrl}/users`, { headers: { authorization: `Bearer ${user.id}` }})
+    const chatsList = await getChats('PERSONAL', user.id) 
+
     setAvailableUsers(resUsers.data)
-    setChats(response.data)
+    setChats(chatsList)
 
     socket.auth = { id: user?.id, username: user?.username };
     socket.connect();
-
-    let list: any = []
-    response.data.map((item: any) => list.push(item.chat.connectedUsers.find((val: any) => val.id != user.id)?.id))
-    console.log('LISTTT', list)
-    socket.emit('onlineUsers', { list })
 
     setLogin(false)
   }
@@ -55,7 +51,6 @@ function App() {
 
   const openChat = async (id: string) => {
     const response = await axios.get(`${baseUrl}/messages/chat/${id}`)
-    // console.log(response)
     setSelectedChat(id)
     setChatData(response.data)
   }

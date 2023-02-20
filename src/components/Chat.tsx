@@ -8,7 +8,6 @@ const baseUrl = 'http://localhost:8001'
 
 
 const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
-
   const [msg, setMsg] = useState('')
   const [messages, setMessages] = useState(chatData)
   const [timer, setTimer] = useState<ReturnType<typeof setTimeout>>();
@@ -20,8 +19,12 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
   useEffect(() => {
     setMessages(chatData)
     socket.emit('onPersonalJoin', { personalId: id })
-  }, [])
-  
+  }, [chatData])
+
+  useEffect(() => {
+    console.log('Message Changed', messages)
+  }, [messages])
+
   useEffect(() => {
     socket.on('onMessage', (payload) => {
       console.log('New Message')
@@ -35,6 +38,14 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
       let chats = [...messages]
       chats.splice(messages.indexOf(messages.find((item: any) => item.id === payload.id)), 1)
       setMessages(chats)
+    })
+
+    socket.on('onMessageEdit', (payload) => {
+      console.log('Edit Message', payload)
+      let index = messages.indexOf(messages.find((item: any) => item.id === payload.id))
+      messages[index].content = payload.content
+      console.log(messages)
+      setMessages([...messages])
     })
 
     socket.on('onTypingStart', (data) => {
@@ -54,7 +65,7 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
       socket.off('onTypingStart');
       socket.off('onTypingStop');
     }
-  }, [messages])
+  }, [])
 
   function setupMsg() {
     let payload = {
@@ -104,6 +115,7 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
   const [showMessageActions, setShowMessageActions] = useState('')
 
   function handleMsgAction(i: any) {
+    if (!i) setShowMessageActions('')
     if (showMessageActions == i) setShowMessageActions('')
     else setShowMessageActions(i)
   }
@@ -111,14 +123,30 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
   const [replyingTo, setReplyingTo] = useState<any>(null)
 
   const handleMessageDelete = async (id: any) => {
-    const response = await axios.delete(`${baseUrl}/messages/${id}/${user.id}`)
-    if(response.status === 200) {
+    const response = await axios.delete(`${baseUrl}/messages/${id}`, { headers: { authorization: `Bearer ${user.id}` }})
+    if (response.status === 200) {
       let chats = [...messages]
       chats.splice(messages.indexOf(messages.find((item: any) => item.id === id)), 1)
       setMessages(chats)
       console.log('Message Deleted')
-    } 
+    }
   }
+
+  const [showEdit, setShowEdit] = useState('')
+  const [editMsg, setEditMsg] = useState('')
+
+  async function handleMessageEdit(id: any) {
+    console.log(id, editMsg)
+    const response = await axios.patch(`${baseUrl}/messages/${id}`, { content: editMsg }, { headers: { authorization: `Bearer ${user.id}` }})
+    if (response.status === 200) {
+      let findMsg = messages.find((item: any) => item.id == id)
+      findMsg.content = editMsg
+      console.log(findMsg)
+    }
+    setEditMsg('')
+    setShowEdit('')
+  }
+
 
   return (
     <div className="w-full">
@@ -132,7 +160,9 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
       {/* TODO: [] Add Delete to message */}
       {/* TODO: [] Show if user is online and save it in database */}
       <ul className="messages">
-        {messages.map((item: any) => {
+        {messages.length == 0 ? (
+          <h4>No Data</h4>
+        ) : messages.map((item: any) => {
           return (
             <li key={item.id} className={item.author.id == user.id ? 'flex justify-end' : ''}>
               <div className="flex flex-row">
@@ -146,7 +176,12 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
                     <img className="avatar" src={item.author.avatar}></img>
                     <div className="flex flex-col justify-center">
                       <span>{item.author.firstName} {item.author.lastName}</span>
-                      <span>{item.content}</span>
+                      {showEdit == item.id ? (
+                        <>
+                          <input className="p-3 border-2" value={editMsg} onChange={(e) => setEditMsg(e.target.value)} />
+                          <span className="mt-5 bg-rose-700 text-white p-2 px-5 rounded-md cursor-pointer" onClick={() => handleMessageEdit(item.id)}>Edit</span>
+                        </>
+                      ) : <span>{item.content}</span>}
                     </div>
                   </div>
                 </div>
@@ -155,8 +190,19 @@ const Chat = ({ chatData, id, user, handleMessageSend }: any) => {
                   {showMessageActions == item.id ? (
                     <div className="flex flex-col bg-white shadow-xl rounded-lg p-5">
                       <span className="cursor-pointer" onClick={() => setReplyingTo(item)}>Reply</span>
+                      {item.author.id == user.id ? (
+                        <span className="cursor-pointer" onClick={() => {
+                          setShowEdit(item.id)
+                          setEditMsg(item.content)
+                          handleMsgAction('')
+                        }}>Edit</span>
+                      ) : null}
                       <span className="cursor-pointer" onClick={() => handleMessageDelete(item.id)}>Delete</span>
-                      <span className="cursor-pointer">Copy</span>
+                      <span className="cursor-pointer" onClick={() => {
+                        navigator.clipboard.writeText(item.content)
+                        console.log('Copied text')
+                        handleMsgAction('')
+                      }}>Copy</span>
                     </div>
                   ) : null}
 
